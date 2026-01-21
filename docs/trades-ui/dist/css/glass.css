@@ -1,0 +1,101 @@
+
+:root{
+  --mtgdc-bg1: rgba(10, 25, 45, 0.85);
+  --mtgdc-bg2: rgba(4, 16, 28, 0.85);
+  --mtgdc-glass: rgba(255,255,255,0.08);
+  --mtgdc-glass2: rgba(255,255,255,0.12);
+  --mtgdc-border: rgba(255,255,255,0.14);
+  --mtgdc-accent1: rgba(0, 209, 255, 1);   /* blue */
+  --mtgdc-accent2: rgba(0, 255, 163, 1);   /* green */
+  --mtgdc-text: rgba(244, 248, 255, 0.92);
+  --mtgdc-muted: rgba(210, 222, 240, 0.72);
+  --mtgdc-shadow: 0 16px 50px rgba(0,0,0,0.35);
+}
+
+html, body{
+  background: radial-gradient(1200px 900px at 12% 8%, rgba(0,209,255,0.22), transparent 45%),
+              radial-gradient(1000px 800px at 80% 18%, rgba(0,255,163,0.18), transparent 50%),
+              linear-gradient(180deg, var(--mtgdc-bg1), var(--mtgdc-bg2));
+  color: var(--mtgdc-text);
+}
+
+a{ color: rgba(140, 220, 255, 0.95); }
+a:hover{ color: rgba(140, 255, 205, 0.95); }
+
+.mtgdc-glass{
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+  border: 1px solid var(--mtgdc-border);
+  border-radius: 18px;
+  box-shadow: var(--mtgdc-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.mtgdc-topbar{
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 9999;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.mtgdc-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--mtgdc-border);
+  background: rgba(255,255,255,0.06);
+}
+
+.mtgdc-btn{
+  appearance: none;
+  border: 1px solid var(--mtgdc-border);
+  background: rgba(255,255,255,0.06);
+  color: var(--mtgdc-text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
+}
+.mtgdc-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.10); }
+.mtgdc-btn:active{ transform: translateY(0px); }
+
+.mtgdc-btn-primary{
+  border-color: rgba(0,209,255,0.35);
+  background: linear-gradient(90deg, rgba(0,209,255,0.16), rgba(0,255,163,0.12));
+}
+
+.mtgdc-overlay{
+  position: fixed; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+}
+.mtgdc-overlay.show{ display:flex; }
+
+.mtgdc-card{
+  width: min(520px, calc(100vw - 28px));
+  padding: 22px;
+}
+.mtgdc-input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.18);
+  color: var(--mtgdc-text);
+  outline: none;
+}
+.mtgdc-input::placeholder{ color: rgba(210,222,240,0.55); }
+.mtgdc-label{ color: var(--mtgdc-muted); font-size: 0.92rem; margin-bottom: 6px; display:block; }
+.mtgdc-help{ color: var(--mtgdc-muted); font-size: 0.92rem; }
+.mtgdc-h1{ font-size: 1.35rem; margin: 0 0 6px 0; }
+.mtgdc-sub{ color: var(--mtgdc-muted); margin: 0 0 14px 0; }
+.mtgdc-row{ display:flex; gap:12px; flex-wrap:wrap; }
+.mtgdc-row > * { flex: 1 1 160px; }

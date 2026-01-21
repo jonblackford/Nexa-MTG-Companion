@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MTG Companion — Sign in</title>
+  <link rel="stylesheet" href="../dist/css/glass.css">
+  <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../dist/js/supabase-client.js"></script>
+</head>
+<body>
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;">
+    <div class="mtgdc-glass mtgdc-card">
+      <h1 class="mtgdc-h1">Sign in</h1>
+      <p class="mtgdc-sub">Use your account to access MTG Desktop Companion on the web.</p>
+
+      <div style="margin-top:12px;">
+        <label class="mtgdc-label" for="email">Email</label>
+        <input class="mtgdc-input" id="email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label class="mtgdc-label" for="password">Password</label>
+        <input class="mtgdc-input" id="password" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <div class="mtgdc-row" style="margin-top:16px;">
+        <button class="mtgdc-btn mtgdc-btn-primary" id="btnLogin" type="button">Sign in</button>
+        <a class="mtgdc-btn" id="btnRegister" href="./register.html" style="text-decoration:none; text-align:center;">Create account</a>
+      </div>
+
+      <div style="margin-top:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <a href="./reset.html">Forgot password?</a>
+        <a href="../web-ui/index.html">Continue without signing in</a>
+      </div>
+
+      <p class="mtgdc-help" id="status" style="margin-top:14px;"></p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const cfg = window.MTGDC_CONFIG || {};
+  const status = document.getElementById('status');
+
+  function basePath(){
+    const b = (cfg.BASE_PATH || '').trim();
+    if(!b) return '';
+    return b.startsWith('/') ? b : ('/' + b);
+  }
+  function qp(name){
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
+  }
+  function setStatus(msg){ status.textContent = msg || ''; }
+
+  const sb = window.mtgdcSupabase;
+  if(!sb){
+    setStatus("Supabase is not configured. Edit /docs/config.js and set SUPABASE_URL + SUPABASE_ANON_KEY.");
+    document.getElementById('btnLogin').disabled = true;
+    return;
+  }
+
+  document.getElementById('btnLogin').addEventListener('click', async ()=>{
+    setStatus("Signing in…");
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){
+      setStatus(error.message);
+      return;
+    }
+    const redirect = qp('redirect');
+    window.location.href = redirect ? redirect : (basePath() + "/web-ui/index.html");
+  });
+})();
+</script>
+</body>
+</html>

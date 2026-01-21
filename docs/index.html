@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MTG Desktop Companion — Web</title>
+  <link rel="stylesheet" href="./dist/css/glass.css">
+  <script src="./config.js"></script>
+</head>
+<body>
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;">
+    <div class="mtgdc-glass mtgdc-card">
+      <h1 class="mtgdc-h1">MTG Desktop Companion</h1>
+      <p class="mtgdc-sub">Choose a module.</p>
+
+      <div class="mtgdc-row" style="margin-top:14px;">
+        <a class="mtgdc-btn mtgdc-btn-primary" href="./web-ui/index.html" style="text-decoration:none; text-align:center;">Main UI</a>
+        <a class="mtgdc-btn" href="./collection-ui/pages/index.html" style="text-decoration:none; text-align:center;">Collection</a>
+      </div>
+      <div class="mtgdc-row" style="margin-top:10px;">
+        <a class="mtgdc-btn" href="./prices-ui/pages/index.html" style="text-decoration:none; text-align:center;">Prices</a>
+        <a class="mtgdc-btn" href="./trades-ui/pages/index.html" style="text-decoration:none; text-align:center;">Trades</a>
+      </div>
+      <div class="mtgdc-row" style="margin-top:10px;">
+        <a class="mtgdc-btn" href="./shop-ui/pages/index.html" style="text-decoration:none; text-align:center;">Shop</a>
+        <a class="mtgdc-btn" href="./admin-ui/index.html" style="text-decoration:none; text-align:center;">Admin</a>
+      </div>
+
+      <div style="margin-top:14px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <a href="./auth/login.html">Sign in</a>
+        <a href="./auth/register.html">Create account</a>
+      </div>
+
+      <p class="mtgdc-help" style="margin-top:14px;">
+        If this is hosted on GitHub Pages (project site), set <code>BASE_PATH</code> in <code>config.js</code>.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

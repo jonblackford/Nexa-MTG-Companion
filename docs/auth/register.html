@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MTG Companion — Create account</title>
+  <link rel="stylesheet" href="../dist/css/glass.css">
+  <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../dist/js/supabase-client.js"></script>
+</head>
+<body>
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;">
+    <div class="mtgdc-glass mtgdc-card">
+      <h1 class="mtgdc-h1">Create account</h1>
+      <p class="mtgdc-sub">Make an account to sign in on any device.</p>
+
+      <div style="margin-top:12px;">
+        <label class="mtgdc-label" for="email">Email</label>
+        <input class="mtgdc-input" id="email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label class="mtgdc-label" for="password">Password</label>
+        <input class="mtgdc-input" id="password" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+      </div>
+
+      <div class="mtgdc-row" style="margin-top:16px;">
+        <button class="mtgdc-btn mtgdc-btn-primary" id="btnSignup" type="button">Create account</button>
+        <a class="mtgdc-btn" href="./login.html" style="text-decoration:none; text-align:center;">Back to sign in</a>
+      </div>
+
+      <p class="mtgdc-help" id="status" style="margin-top:14px;"></p>
+      <p class="mtgdc-help" style="margin-top:8px;">Tip: you may need to confirm your email depending on your Supabase auth settings.</p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const status = document.getElementById('status');
+  function setStatus(msg){ status.textContent = msg || ''; }
+
+  const sb = window.mtgdcSupabase;
+  if(!sb){
+    setStatus("Supabase is not configured. Edit /docs/config.js and set SUPABASE_URL + SUPABASE_ANON_KEY.");
+    document.getElementById('btnSignup').disabled = true;
+    return;
+  }
+
+  document.getElementById('btnSignup').addEventListener('click', async ()=>{
+    setStatus("Creating your account…");
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if(error){
+      setStatus(error.message);
+      return;
+    }
+    setStatus("Account created. If email confirmation is enabled, check your inbox—then come back and sign in.");
+  });
+})();
+</script>
+</body>
+</html>

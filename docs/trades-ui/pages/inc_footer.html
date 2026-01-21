@@ -1,0 +1,37 @@
+<footer>
+
+		<section class="footer-Content">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-4 col-md-4 col-xs-6 col-mb-12">
+						<div class="widget">
+							<div class="footer-logo">
+								<img src="../dist/img/logo2.png" width="50" alt=""> MTGMarket for MTGCompanion
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</footer>
+	
+	
+<script>
+
+ $("#loggedUser").html(function(){
+		var u = getCurrentUser();
+		if(u)
+		{
+			$("#loggedUser").html(u.name);
+			$("#loggedUser").attr("href","./contactpage.html?id="+u.id);
+			// <i class="lni-enter"></i> <span>Logout</span>
+		}
+		else
+		{
+			$("#postAdsButton").hide();
+		}
+  });
+ 
+ 
+ 
+</script>
