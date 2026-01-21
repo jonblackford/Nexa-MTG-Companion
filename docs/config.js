@@ -1,18 +1,11 @@
-// MTG Desktop Companion - Web Hosted Config
-// 1) Set REST_SERVER to your deployed backend base URL (no trailing slash)
-// 2) Set Supabase URL + ANON KEY from your Supabase project settings
-// 3) BASE_PATH: for GitHub Pages project sites, set to '/<REPO_NAME>' (e.g. '/MtgDesktopCompanion')
-//    For user/org sites (username.github.io), leave as ''.
-window.MTGDC_CONFIG = {
-  BASE_PATH: '',
+// docs/config.js
 
-  // Backend REST server (SparkJava/JSON server) base URL
-  REST_SERVER: 'http://localhost:8080',
+window.BASE_PATH = "/Nexa-MTG-Companion";
 
-  // Supabase Auth (optional but recommended)
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+// Backend base URL (no trailing slash)
+// Use localhost while testing, then swap to your hosted backend URL.
+window.REST_SERVER = "https://nexa-mtg-companion.onrender.com";
 
-  // Gate pages behind login
-  AUTH_REQUIRED: true
-};
+// Supabase
+window.SUPABASE_URL = "https://ylrvmmrkjonbotvqzeqc.supabase.co";
+window.SUPABASE_ANON_KEY = "sb_publishable_b4HsA_WfWVcOB0AJqoGV_Q_jdqDj_zT";
