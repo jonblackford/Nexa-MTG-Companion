@@ -223,11 +223,7 @@ function normalizeCards(payload){
 					       if (input.length < 3) {
 					          return resolve([])
 					        }
-			        fetch(restserver+'/cards/light/'+encodeURIComponent(input))
-			          .then(response => response.json())
-			          .then(data => {
-							resolve(normalizeCards(data))
-						})
+			        mtgdcScryfallSearch(input).then(resolve).catch(()=>resolve([])))
 			      })
 			    },
 			    getResultValue: result =>result.name , 
@@ -352,6 +348,24 @@ function normalizeCards(payload){
    <script src="../dist/js/material-dashboard.js?v=3.0.0"></script>
 
  
+<script>
+async function mtgdcScryfallSearch(q){
+  const query = String(q||'').trim();
+  if(!query || query.length < 2) return [];
+  const url = 'https://api.scryfall.com/cards/search?q=' + encodeURIComponent(query) + '&unique=prints&order=released&dir=desc';
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
+  if(!res.ok) return [];
+  const json = await res.json();
+  const arr = Array.isArray(json.data) ? json.data : [];
+  return arr.slice(0, 12).map(c => ({
+    name: c.name,
+    scryfallId: c.id,
+    set: (c.set_name || c.set || ''),
+    keyrune: (c.set || '')
+  }));
+}
+</script>
+
 </body>
 
 </html>	

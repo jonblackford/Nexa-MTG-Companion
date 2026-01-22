@@ -50,6 +50,8 @@
   if(!sb) return;
 
   showBlocking('Checking your session…');
+      // Safety: never let overlay get stuck
+      setTimeout(() => { const o=document.getElementById('mtgdc-auth-overlay'); if(o) o.classList.remove('show'); }, 4000);
   try{
     const { data, error } = await sb.auth.getSession();
     if (error || !data || !data.session){
