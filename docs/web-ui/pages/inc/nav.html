@@ -70,7 +70,7 @@
 					       if (input.length < 3) {
 					          return resolve([])
 					        }
-			        fetch(restserver+'/cards/suggestcard/'+input)
+			        fetch(restserver+'/cards/light/'+encodeURIComponent(input))
 			          .then(response => response.json())
 			          .then(data => {
 							resolve(data)
