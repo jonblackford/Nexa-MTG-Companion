@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version='1.0' encoding='utf-8'?>
 <conf>
   <version>2.49</version>
   <modules>
@@ -21,12 +21,12 @@
     <webshop>true</webshop>
     <announce>true</announce>
   </modules>
-  <currencylayer-access-api/>
+  <currencylayer-access-api />
   <tooltip>true</tooltip>
   <technical-log>false</technical-log>
   <default-library>Library</default-library>
   <loglevel>INFO</loglevel>
-  <default-website-dir/>
+  <default-website-dir />
   <keystore-name>jssecacerts</keystore-name>
   <keystore-pass>changeit</keystore-pass>
   <min-price-alert>1</min-price-alert>
@@ -52,9 +52,9 @@
     </cards>
     <player-profil>
       <name>$username</name>
-      <foreground/>
-      <background/>
-      <avatar/>
+      <foreground />
+      <background />
+      <avatar />
     </player-profil>
   </game>
   <network-config>
@@ -88,11 +88,11 @@
   <currencylayer-converter-enable>false</currencylayer-converter-enable>
   <langage>English</langage>
   <autocompletion>true</autocompletion>
-  <accounts/>
+  <accounts />
   <indexers>
     <index>
       <class>org.magic.api.indexer.impl.LuceneIndexer</class>
-      <enable>true</enable>
+      <enable>false</enable>
     </index>
   </indexers>
   <textGenerators>
@@ -424,7 +424,7 @@
       <class>org.magic.api.pricers.impl.CardSpherePricer</class>
       <enable>false</enable>
     </pricer>
-     <pricer>
+    <pricer>
       <class>org.magic.api.pricers.impl.MTGMintCardsPricer</class>
       <enable>true</enable>
     </pricer>
@@ -436,11 +436,11 @@
     </provider>
     <provider>
       <class>org.magic.api.providers.impl.ScryFallProvider</class>
-      <enable>false</enable>
+      <enable>true</enable>
     </provider>
     <provider>
       <class>org.magic.api.providers.impl.MTGSQLiveProvider</class>
-      <enable>true</enable>
+      <enable>false</enable>
     </provider>
     <provider>
       <class>org.magic.api.providers.impl.Mtgjson5Provider</class>
@@ -788,11 +788,11 @@
       <class>org.magic.api.exports.impl.TCGHomeExport</class>
       <enable>false</enable>
     </export>
-     <export>
+    <export>
       <class>org.magic.api.exports.impl.TopDeckedExport</class>
       <enable>true</enable>
     </export>
-     <export>
+    <export>
       <class>org.magic.api.exports.impl.TopDeckedExport</class>
       <enable>true</enable>
     </export>
@@ -949,7 +949,7 @@
       <enable>false</enable>
     </sealedProvider>
   </sealeds>
- <artificialIntelligences>
+  <artificialIntelligences>
     <ia>
       <class>org.magic.api.ia.impl.ChatGPT</class>
       <enable>false</enable>
@@ -987,5 +987,4 @@
       <enable>false</enable>
     </strategy>
   </strategies>
- 
 </conf>
