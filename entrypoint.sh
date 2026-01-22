@@ -1,18 +1,18 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 PORT="${PORT:-8080}"
 
 APP_HOME="/app/mtgcompanion"
 cd "$APP_HOME"
 
-# Write/update server config to bind Render's $PORT + allow CORS
+# Bind to Render's $PORT + permissive CORS for GitHub Pages frontend
 CONF_DIR="/root/.magicDeskCompanion/server"
 CONF_FILE="$CONF_DIR/Json Http Server.conf"
 mkdir -p "$CONF_DIR"
 
-if [ ! -f "$CONF_FILE" ]; then
-  cat > "$CONF_FILE" <<EOF
+if [[ ! -f "$CONF_FILE" ]]; then
+cat > "$CONF_FILE" <<EOF
 SERVER-PORT=$PORT
 ENABLE_GZIP=true
 INDEX_ROUTES=true
@@ -32,20 +32,8 @@ else
 fi
 
 echo "[boot] APP_HOME=$APP_HOME"
-echo "[boot] Checking for project jar:"
-ls -la ./lib/magic-api.jar || true
+echo "[boot] magic-api.jar size:"
+ls -lah ./lib/magic-api*.jar 2>/dev/null || true
 
-# If the project jar isn't there, print a short diagnostic and exit
-if [ ! -f "./lib/magic-api.jar" ]; then
-  echo "[boot][ERROR] ./lib/magic-api.jar is missing. This jar must contain org.magic.main.ServerLauncher."
-  echo "[boot] Showing first 50 jars in ./lib:"
-  ls -1 ./lib/*.jar 2>/dev/null | head -n 50 || true
-  exit 1
-fi
-
-# Start the Json Http Server
-# Put magic-api.jar first so the main class is definitely resolvable.
-CLASSPATH="./conf:./lib/magic-api.jar:./lib/*"
-
-echo "[boot] Starting Json Http Server on port $PORT"
-exec java -cp "$CLASSPATH" org.magic.main.ServerLauncher "Json Http Server"
+# Launch Json Http Server using the appassembler script (uses the correct classpath)
+exec ./bin/server-launch.sh "Json Http Server"

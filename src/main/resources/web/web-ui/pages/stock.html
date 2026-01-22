@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>MTG Web Companion</title>
+  
+  <link rel="icon" type="image/png" href="../dist/img/32.png">
+  <link href="//cdn.jsdelivr.net/npm/keyrune@latest/css/keyrune.css" rel="stylesheet" type="text/css" />
+  <link href="//cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css" rel="stylesheet" type="text/css" />
+
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
+  <link href="//fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link id="pagestyle" href="../dist/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css"/>
+  <link href="//cdn.jsdelivr.net/npm/keyrune@latest/css/keyrune.css" rel="stylesheet" type="text/css" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css">
+
+
+  
+  <link href="//unpkg.com/@trevoreyre/autocomplete-js/dist/style.css" rel="stylesheet" />
+ 
+  <script src="//unpkg.com/@trevoreyre/autocomplete-js"></script>    
+
+  <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/1.5.5/perfect-scrollbar.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/smooth-scrollbar/8.7.4/smooth-scrollbar.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+
+  
+  <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  <script src="//cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>
+  <script src="../dist/js/rest-server.js"></script>
+  <script src="../dist/js/js-var.js"></script>
+  <script src="../dist/js/mtgcompanion-ui.js"></script>
+
+
+
+  <script>
+ 
+	$(document).ready(function() {
+			
+		
+		 var source = $_GET('type')=='CARD' ? "stock":"sealed";
+				
+		
+			$("#sidenav-main" ).load("inc/menu.html" );
+			$("#navbarBlur").load("inc/nav.html",function(){
+					$("[name='categTitle']").html("Stock");
+					
+					if(source=="stock")
+					{
+						$("#menuStocks").addClass("bg-gradient-primary");
+						$("#menuStocks").addClass("active");
+					}
+					else
+					{
+						$("#menuSealeds").addClass("bg-gradient-primary");
+						$("#menuSealeds").addClass("active");
+					}
+			});
+			
+			$("#navfooter").load("inc/footer.html");
+			$("#settingPanel").load("inc/settingPanel.html");
+			
+			
+			
+			$.get(restserver+"/collections/list",function(data){
+				
+				 for(var i=0;i<data.length;i++)
+   				 {
+   				 	$("#productCollection").append("<option value='"+data[i].name+"'>"+data[i].name+"</option>")
+   				 }
+			});
+			
+			
+			$.get(restserver+"/metadata/conditions",function(data){
+				
+				 for(var i=0;i<data.length;i++)
+  				 {
+  				 	$("#productCondition").append("<option value='"+data[i]+"'>"+data[i]+"</option>")
+  				 }
+			});
+			
+			$.get(restserver+"/metadata/categories",function(data){
+				
+				 for(var i=0;i<data.length;i++)
+ 				 {
+ 				 	$("#productType").append("<option value='"+data[i]+"'>"+data[i]+"</option>")
+ 				 }
+			});
+			
+			
+			
+			$( "#snapModal" ).on('shown.bs.modal', function(e){
+				    $(this).off('shown.bs.modal');
+    				$("#webcamInc").load("webcam-add.html");
+			});
+			
+			
+			
+			$('#productComment').summernote({
+				disableDragAndDrop : true,
+				height : 250, // set editor height
+				focus : false,
+				toolbar: [
+							    ['style', ['bold', 'italic', 'underline', 'clear']],
+							    ['font', ['strikethrough', 'superscript', 'subscript']],
+							    ['fontsize', ['fontsize']],
+							    ['color', ['color']],
+							    ['para', ['ul', 'ol', 'paragraph']],
+							    ['height', ['height']]
+							  ]
+
+			});
+			
+			var queryUrl=restserver+"/"+source+"/get/"+$_GET('id');
+			
+			if($_GET('shop'))
+			{
+				$( "#btnPhoto" ).hide();
+				queryUrl=restserver+"/extShop/stock/"+$_GET('shop')+"/"+$_GET('id');
+			}
+			
+			
+			$.get(queryUrl,function(data){
+				
+				$("#productImage").attr("src",data.product.url);
+				$("#productTitle").html(data.product.name);
+				$("#productPrice").val(data.price.toFixed(2));
+				$("#productQty").val(data.qte);
+				try{
+					$("#productEdition").html('<i class="ss ss-grad ss-'+data.edition.keyRuneCode.toLowerCase()+'"></i>'+data.edition.set);
+				}
+				catch(error)
+				{
+					$("#productEdition").html('<i class="ss ss-grad ss-'+data.edition.id.toLowerCase()+'"></i>'+data.edition.set);
+				}
+				$("#productCollection").val(data.magicCollection.name).change();
+				$("#productCondition").val(data.condition).change();
+				$("#productType").val(data.product.typeProduct).change();
+				$("#productLangage").val(data.language).change();
+				
+				$("#productComment").summernote("code", data.comment);
+				
+				if(source=="stock")
+				{
+					$("#cardExtra").show();
+					
+					$("#chkFoil").prop('checked', data.foil);
+					$("#chkEtched").prop('checked', data.etched);
+					$("#chkSigned").prop('checked', data.signed);
+					$("#chkAltered").prop('checked', data.altered);
+					
+				}
+				
+				
+				if(data.qte>2)
+				{
+					$("#instock").html("In Stock")
+					$("#instock").addClass("badge-success")	
+				}
+				else if(data.qte<=0)
+				{
+					$("#instock").html("Out of  stock")
+					$("#instock").addClass("badge-danger")	
+				}
+				else if(data.qte<=1)
+				{
+					$("#instock").html("Low in stock")
+					$("#instock").addClass("badge-warning")	
+				}	
+				
+				$("#btnDelete").click( function() {
+		   	  			var id = $(this).attr('value');
+						$.ajax({
+							url:restserver+"/stock/"+data.id,
+							type: 'DELETE'
+						}).done(function(data) {
+   							location.href = 'stocks.html';
+				   		 }).fail(function(data,status,error) {
+				   			alert(JSON.stringify(data) + " " + error);
+				   		 });
+				});
+				
+				
+			
+				$("#btnUpdate").on("click",function(){
+						var obj = {
+								id:	$_GET("id"),
+								price:$("#productPrice").val(),
+								qty: $("#productQty").val(),
+								condition:$("#productCondition").val(),
+								language:$("#productLangage").val(),
+								collection:$("#productCollection").val(),
+								foil:$("#chkFoil").is(':checked'),
+								etched:$("#chkEtched").is(':checked'),
+								signed: $("#chkSigned").is(':checked'),
+								altered: $("#chkAltered").is(':checked'),
+								comment: $("#productComment").summernote('code')
+						};
+						
+						$.ajax({
+								type: 'PUT',
+								data: JSON.stringify(obj),
+							    url: restserver+"/stock/"+source+"/update"
+						   		 }).done(function(data) {
+						   			alert("OK");
+						   		 }).fail(function(data,status,error) {
+						   			alert(JSON.stringify(data) + " " + error);
+						   		 });
+						
+						
+				});
+				
+				
+			});
+			
+			
+			
+	});
+ </script>
+</head>
+
+
+<body class="g-sidenav-show  bg-gray-200">
+	<aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start menu-left bg-gradient-dark" id="sidenav-main"></aside>
+  	<main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+	<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true"></nav>
+   
+    <div class="container-fluid py-4">
+	<div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="mb-4">Product Details</h5>
+              
+
+	<div class="row">
+		<div class="col-xl-5 col-lg-6 text-center">
+			<img class="border-radius-lg shadow-lg mx-auto img-fluid img-responsive" src="" alt="" id="productImage">
+			
+		</div>
+	
+	
+		<div class="col-lg-5 mx-auto">
+			<h3 class="mt-lg-0 mt-4" id="productTitle"></h3>
+			<h4 id='productEdition'></h4>
+			<br>
+			<h6 class="mb-0 mt-3"><i class="fa-solid fa-money-bill-wave"></i>Price</h6>
+			<input type="number" value="" min="0" step="0.1" class="form-control" id="productPrice"/>   
+			
+			<h6 class="mb-0 mt-3"><i class="fa-solid fa-cubes-stacked"></i>Stock</h6>
+			<span class="badge badge-success" id='instock'>In Stock</span>
+			
+			<h6 class="mb-0 mt-3"><i class="fa-solid fa-book-bookmark"></i>Collection</h6>
+			<select class="form-select" id='productCollection'></select>
+			
+				<div class="row ">
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-cubes"></i>Quantity</h6>
+							<input type="number" value="" min="0" max="100" step="1" class="form-control" id="productQty"/>   
+					</div>
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-gem"></i>Quality</h6>
+							<select class="form-select" id='productCondition'></select>
+					</div>
+					<div class="col-lg-3"  style="display:none" >
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-sheet-plastic"></i>Type</h6>
+							<select class="form-select" id='productType'></select>
+					</div>
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-language"></i>Lang</h6>
+							 <select class="form-control" id="productLangage">
+							            <option value="English">English</option>
+										<option value="French">French</option>
+							            <option value="German">German</option>
+							            <option value="Spanish">Spanish</option>
+										<option value="Japanese">Japanese</option>
+										<option value="Portugues">Portugues</option>
+										<option value="Italian">Italian</option>
+							         </select>
+					</div>
+				</div>
+				
+				<div class="row" id="cardExtra" style="display:none">
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-star"></i>Foil</h6>
+						<div class="form-check form-switch ps-0 ms-auto my-auto is-filled">
+				            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="chkFoil">
+				        </div>   
+					</div>
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-star-half-stroke"></i>Etched</h6>
+						<div class="form-check form-switch ps-0 ms-auto my-auto is-filled">
+				            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="chkEtched">
+				        </div> 
+					</div>
+					<div class="col-lg-3">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-paintbrush"></i>Altered</h6>
+						<div class="form-check form-switch ps-0 ms-auto my-auto is-filled">
+				            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="chkAltered">
+				        </div> 
+					</div>
+					<div class="col-lg-2">
+						<h6 class="mb-0 mt-3"><i class="fa-solid fa-signature"></i>Signed</h6>
+						<div class="form-check form-switch ps-0 ms-auto my-auto is-filled">
+				            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="chkSigned">
+				        </div> 
+					</div>
+				</div>
+				<br/>
+				
+				<h6 class="mb-0 mt-3"><i class="fa-solid fa-comment"></i>Comment</h6>
+				<section id="editor">
+					<div id="productComment"></div>
+				</section>
+				<br/>
+				<button id="btnUpdate" type="button" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+				<button id="btnPhoto" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#snapModal"><i class="fa-solid fa-camera"></i> Take a pic</button>
+				<button id="btnDelete" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-trash"></i> Delete</button>
+		</div>
+	
+	
+	
+	
+	</div>
+	</div>
+	
+	</div>
+	</div>
+	</div>
+
+
+  </main>
+  <div class="fixed-plugin">
+    <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+      <i class="material-icons py-2">settings</i>
+    </a>
+    <div class="card shadow-lg" id="settingPanel"> </div>
+  </div>
+ 
+
+
+<div class="modal fade" id="snapModal" tabindex="-1" role="dialog" aria-labelledby="snapModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title font-weight-normal" id="snapModalLabel">Take a pic</h5>
+        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      		<div id="webcamInc"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+   <script src="../dist/js/material-dashboard.js?v=3.0.0"></script>
+  
+</body>
+
+</html>	
+	
+	
+	
