@@ -41,11 +41,6 @@ public class VersionChecker {
 		}
 	}
 
-	{
-			GithubUtils.inst().setUpdateToPreRelease(updatePr);
-			onlineVersion = GithubUtils.inst().getVersion();
-		
-	}
 
 	public VersionChecker(boolean preRelease) {
 		actualVersion = getVersion();
