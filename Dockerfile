@@ -4,10 +4,8 @@
 FROM maven:3.9.9-eclipse-temurin-23 AS build
 WORKDIR /build
 
-# Copy what Maven needs
-COPY pom.xml ./
-COPY lib ./lib
-COPY src ./src
+# Copy the whole repo (simplest + avoids missing folder issues like /lib)
+COPY . .
 
 # Build the app + generate target/executable via appassembler
 RUN mvn -DskipTests package
