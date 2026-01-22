@@ -6,6 +6,7 @@ PORT="${PORT:-8080}"
 APP_HOME="/app/mtgcompanion"
 cd "$APP_HOME"
 
+# Write/update server config to bind Render's $PORT + allow CORS
 CONF_DIR="/root/.magicDeskCompanion/server"
 CONF_FILE="$CONF_DIR/Json Http Server.conf"
 mkdir -p "$CONF_DIR"
@@ -31,34 +32,20 @@ else
 fi
 
 echo "[boot] APP_HOME=$APP_HOME"
-echo "[boot] lib jars:"
-ls -la ./lib || true
-echo "[boot] conf files:"
-ls -la ./conf || true
+echo "[boot] Checking for project jar:"
+ls -la ./lib/magic-api.jar || true
 
-# Find the jar that contains org/magic/main/ServerLauncher.class
-MAIN_JAR=""
-for j in ./lib/*.jar ./*.jar; do
-  [ -f "$j" ] || continue
-  if jar tf "$j" 2>/dev/null | grep -q "org/magic/main/ServerLauncher.class"; then
-    MAIN_JAR="$j"
-    break
-  fi
-done
-
-if [ -z "$MAIN_JAR" ]; then
-  echo "[boot][ERROR] Could not locate ServerLauncher in any jar under ./lib or app root."
-  echo "[boot] Showing first 50 jar names in ./lib:"
+# If the project jar isn't there, print a short diagnostic and exit
+if [ ! -f "./lib/magic-api.jar" ]; then
+  echo "[boot][ERROR] ./lib/magic-api.jar is missing. This jar must contain org.magic.main.ServerLauncher."
+  echo "[boot] Showing first 50 jars in ./lib:"
   ls -1 ./lib/*.jar 2>/dev/null | head -n 50 || true
   exit 1
 fi
 
-echo "[boot] MAIN_JAR=$MAIN_JAR"
-
-EXTRA_JVM_ARGS="-Xmx1024m -Djava.awt.headless=true -Dlog4j2.formatMsgNoLookups=true --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
-
-CLASSPATH="./conf:$MAIN_JAR:./lib/*"
+# Start the Json Http Server
+# Put magic-api.jar first so the main class is definitely resolvable.
+CLASSPATH="./conf:./lib/magic-api.jar:./lib/*"
 
 echo "[boot] Starting Json Http Server on port $PORT"
-exec java $EXTRA_JVM_ARGS -cp "$CLASSPATH" org.magic.main.ServerLauncher "Json Http Server"
-
+exec java -cp "$CLASSPATH" org.magic.main.ServerLauncher "Json Http Server"
