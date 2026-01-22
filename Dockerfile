@@ -1,8 +1,30 @@
 # syntax=docker/dockerfile:1
-FROM openjdk:23-jdk
+
+### Build stage
+FROM maven:3.9.9-eclipse-temurin-23 AS build
+WORKDIR /build
+
+# Copy what Maven needs
+COPY pom.xml ./
+COPY lib ./lib
+COPY src ./src
+
+# Build the app + generate target/executable via appassembler
+RUN mvn -DskipTests package
+
+### Runtime stage
+FROM eclipse-temurin:23-jre
 WORKDIR /app
-COPY target/executable ./mtgcompanion
-EXPOSE 8080/tcp
-EXPOSE 80/tcp
-CMD ["./mtgcompanion/bin/web-ui.sh"]
-VOLUME "/root/.magicDeskCompanion/"
+
+# Copy the generated runnable distribution
+COPY --from=build /build/target/executable ./mtgcompanion
+
+# Entrypoint that sets SERVER-PORT from Render's $PORT
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh && chmod +x /app/mtgcompanion/bin/*.sh
+
+ENV JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
+EXPOSE 8080
+VOLUME ["/root/.magicDeskCompanion"]
+
+ENTRYPOINT ["/entrypoint.sh"]
