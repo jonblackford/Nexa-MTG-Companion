@@ -32,10 +32,17 @@ public class VersionChecker {
 
 	public void setUpdatePreReleased(boolean updatePr)
 	{
+		try {
 			GithubUtils.inst().setUpdateToPreRelease(updatePr);
 			onlineVersion = GithubUtils.inst().getVersion();
-		
+		} catch (Exception e) {
+			// In headless/server environments (e.g., Render), GitHub API can rate-limit unauthenticated requests.
+			// Version checks are non-critical; fall back to the local version so startup can continue.
+			logger.warn("Skipping online version check: {}", e.getMessage());
+			onlineVersion = actualVersion;
+		}
 	}
+
 
 	public VersionChecker(boolean preRelease) {
 		actualVersion = getVersion();
