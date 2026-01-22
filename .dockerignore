@@ -1,0 +1,13 @@
+.git
+.github
+docs
+node_modules
+**/node_modules
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.psd
+*.ai
+.DS_Store
