@@ -7,8 +7,10 @@ WORKDIR /build
 # Copy the whole repo (simplest + avoids missing folder issues like /lib)
 COPY . .
 
-# Build the app + generate target/executable via appassembler
-RUN mvn -DskipTests package
+# IMPORTANT:
+# -DskipTests skips running tests BUT still compiles them.
+# -Dmaven.test.skip=true skips compiling tests too (needed for this repo on CI hosts).
+RUN mvn -Dmaven.test.skip=true package
 
 ### Runtime stage
 FROM eclipse-temurin:23-jre
