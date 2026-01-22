@@ -7,6 +7,7 @@
   <script src="../../config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../dist/js/supabase-client.js"></script>
+  <script src="../dist/js/supabase-store.js"></script>
   <script src="../dist/js/auth-guard.js"></script>
 
   <meta charset="utf-8" />
@@ -67,7 +68,10 @@
 		        "processing": true,
 		        "order": [[ 3, "desc" ]],
 		        "pageLength": 50,
-		        "ajax": {"url":restserver+"/decks/list","dataSrc":""},
+		        "ajax": function(data, callback, settings){
+  window.MTGStore.listDecks().then(function(rows){ callback({data: rows}); }).catch(function(e){ console.error(e); callback({data: []}); });
+},
+"dataSrc": "data",
 		        "columns": [
 		        	{ 
 			                "data": "name",

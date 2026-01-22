@@ -7,6 +7,7 @@
   <script src="../../config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../dist/js/supabase-client.js"></script>
+  <script src="../dist/js/supabase-store.js"></script>
   <script src="../dist/js/auth-guard.js"></script>
 
   <meta charset="utf-8" />
@@ -64,17 +65,8 @@
 				})
 			});
 			
-			$.ajax({
-	  			url: restserver+"/collections/default"
-	   	   		 }).done(function(data) {
-	   	   			 $("#defaultLibraryName").html(data);
-	   	   			 
-	   	   			 
-	   	   		 });
-			
-			
-			
-			$('#tableCollections').DataTable( {
+			window.MTGStore.getDefaultCollectionName().then(function(name){ $('#defaultLibraryName').html(name || ''); }).catch(function(e){ console.error(e); });
+$('#tableCollections').DataTable( {
 				"responsive": true,
 				"pageLength": 5,
 				"lengthChange": false,
@@ -84,7 +76,10 @@
 		    	    "search": "Filter",
 		    	    "processing": "<img src='../dist/img/loading.gif' width='50' height='50'>"
 		    	  },
-		        "ajax": {"url":restserver+"/collections/list","dataSrc":""},
+		        "ajax": function(data, callback, settings){
+  window.MTGStore.listCollections().then(function(rows){ callback({data: rows}); }).catch(function(e){ console.error(e); callback({data: []}); });
+},
+"dataSrc": "data",
 				"columns": [
 		        	{ 
 		                "data": "name",

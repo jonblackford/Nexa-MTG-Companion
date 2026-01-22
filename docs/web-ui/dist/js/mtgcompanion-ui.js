@@ -196,10 +196,13 @@ function importDeck(url,name,provider, callback)
 
 function addCard(idScryfall,to,callback)
 {
-	$.ajax({
-		type: 'PUT',
-	    url: restserver+"/cards/add/"+to+"/"+idScryfall
-   		 }).done(function(data) {
+	if(!window.MTGStore){ alert('Supabase store not loaded'); return; }
+	window.MTGStore.addCardToCollectionByName(to,idScryfall)
+		.then(function(){ callback(); })
+		.catch(function(err){ alert((err && err.message)? err.message : JSON.stringify(err)); });
+}
+
+).done(function(data) {
    			callback();
    		 }).fail(function(data,status,error) {
    			alert(JSON.stringify(data) + " " + error);
@@ -222,10 +225,13 @@ function addCardtoDefaultLibrary(idScryfall,callback)
 
 function moveCard(idScryfall,from, to,callback)
 {
-	$.ajax({
-		type: 'PUT',
-	    url: restserver+"/cards/move/"+from+"/"+to+"/"+idScryfall
-   		 }).done(function(data) {
+	if(!window.MTGStore){ alert('Supabase store not loaded'); return; }
+	window.MTGStore.moveCardBetweenCollections(from,to,idScryfall)
+		.then(function(){ callback(); })
+		.catch(function(err){ alert((err && err.message)? err.message : JSON.stringify(err)); });
+}
+
+).done(function(data) {
    			callback();
    		 }).fail(function(data,status,error) {
    			alert(JSON.stringify(data) + " " + error);
@@ -250,10 +256,13 @@ function addAlert(idScryfall,callback)
 
 function addStock(idScryfall,callback)
 {
-	$.ajax({
-		type: 'POST',
-	    url: restserver+"/stock/add/"+idScryfall
-   		 }).done(function(data) {
+	if(!window.MTGStore){ alert('Supabase store not loaded'); return; }
+	window.MTGStore.addToStock(idScryfall)
+		.then(function(){ callback(); })
+		.catch(function(err){ alert((err && err.message)? err.message : JSON.stringify(err)); });
+}
+
+).done(function(data) {
    			callback();
    		 }).fail(function(data,status,error) {
    			alert(JSON.stringify(data) + " " + error);
@@ -263,10 +272,13 @@ function addStock(idScryfall,callback)
 
 function addCollection(name,callback)
 {
-	$.ajax({
-		type: 'PUT',
-	    url: restserver+"/collections/add/"+name
-   		 }).done(function(data) {
+	if(!window.MTGStore){ alert('Supabase store not loaded'); return; }
+	window.MTGStore.getOrCreateCollectionByName(name)
+		.then(function(){ callback(); })
+		.catch(function(err){ alert((err && err.message)? err.message : JSON.stringify(err)); });
+}
+
+).done(function(data) {
    			callback();
    		 }).fail(function(data,status,error) {
    			alert(JSON.stringify(data) + " " + error);
