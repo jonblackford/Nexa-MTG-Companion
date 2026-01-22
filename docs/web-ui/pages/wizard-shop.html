@@ -3,11 +3,11 @@
 
 <head>
   <!-- mtgdc-auth: injected for GitHub Pages -->
-  <link rel="stylesheet" href=".dist/css/glass.css">
+  <link rel="stylesheet" href="../dist/css/glass.css">
   <script src="../../config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src=".dist/js/supabase-client.js"></script>
-  <script src=".dist/js/auth-guard.js"></script>
+  <script src="../dist/js/supabase-client.js"></script>
+  <script src="../dist/js/auth-guard.js"></script>
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -201,7 +201,7 @@
 					       if (input.length < 3) {
 					          return resolve([])
 					        }
-			        fetch(restserver+'/cards/light/'+encodeURIComponent(input))
+			        fetch(restserver+'/cards/light/'+encodeURIComponent(encodeURIComponent)(input))
 			          .then(response => response.json())
 			          .then(data => {
 							resolve(data)
