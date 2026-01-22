@@ -91,8 +91,18 @@ public class ScryFallProvider extends AbstractCardsProvider {
 	
 	@Override
 	public void init() {
-		
-			ThreadManager.getInstance().executeThread(new MTGRunnable() {
+		// Server hosting platforms (Render/Fly/etc.) often have limited memory.
+		// The desktop app preloads huge Scryfall bulk datasets (default_cards/rulings),
+		// which can OOM on small instances. When PORT is set, we assume server mode
+		// and skip bulk preload; live API calls still work.
+		var portEnv = System.getenv("PORT");
+		var liteEnv = System.getenv("MTG_SERVER_LITE");
+		if ((portEnv != null && !portEnv.isBlank()) || (liteEnv != null && liteEnv.equalsIgnoreCase("true"))) {
+			logger.warn("Server mode detected; skipping Scryfall bulk preload to avoid OOM (set MTG_SERVER_LITE=false to force preload). PORT={}", portEnv);
+			return;
+		}
+
+ThreadManager.getInstance().executeThread(new MTGRunnable() {
 				
 				@Override
 				protected void auditedRun() {
