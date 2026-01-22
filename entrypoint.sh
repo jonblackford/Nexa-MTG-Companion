@@ -3,6 +3,10 @@ set -euo pipefail
 
 PORT="${PORT:-8080}"
 
+# IMPORTANT: Appassembler scripts often rely on relative paths (./lib, ./conf, etc.).
+# Ensure we're in the assembled app root before launching.
+cd /app/mtgcompanion
+
 CONF_DIR="/root/.magicDeskCompanion/server"
 CONF_FILE="$CONF_DIR/Json Http Server.conf"
 
@@ -29,5 +33,5 @@ else
   fi
 fi
 
-# Start ONLY the JSON API server (you don't need the built-in web server since GitHub Pages hosts the UI)
-exec /app/mtgcompanion/bin/server-launch.sh "Json Http Server"
+# Launch JSON API server
+exec ./bin/server-launch.sh "Json Http Server"
