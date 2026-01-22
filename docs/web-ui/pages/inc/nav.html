@@ -1,3 +1,25 @@
+function normalizeCards(payload){
+  // Accept array or object wrappers from different backend providers
+  const arr = Array.isArray(payload) ? payload
+    : (payload && (payload.data || payload.cards || payload.results || payload.items)) ? (payload.data || payload.cards || payload.results || payload.items)
+    : [];
+  return (arr || []).map(c => {
+    const name = c.name || c.cardName || c.card_name || c.title || '';
+    const scryfallId = c.scryfallId || c.idScryfall || c.scryfall_id || c.scryfallID || c.id || '';
+    const set = c.set || c.edition || c.setName || c.set_code || c.editionName || '';
+    const keyrune = c.keyrune || c.keyRune || c.keyRuneCode || c.keyruneCode || c.setCode || c.set_code || '';
+    return {
+      name,
+      scryfallId,
+      set,
+      keyrune,
+      showcase: !!(c.showcase || c.isShowcase),
+      extendedArt: !!(c.extendedArt || c.isExtendedArt),
+      borderless: !!(c.borderless || c.isBorderless)
+    };
+  }).filter(x => x.name);
+}
+
   
   <div class="container-fluid py-1 px-3">
   		
@@ -8,10 +30,6 @@
             <li class="breadcrumb-item text-sm text-dark active" aria-current="page"  name="categTitle"></li>
           </ol>
         </nav>
-<script>
-  window.getCartItems = window.getCartItems || function(){ return []; };
-</script>
-
         
         
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
@@ -63,8 +81,8 @@
 		});
 	
 		
-		try{document.getElementById("cartBadge").style.visibility=(getCartItems().length<=0)?"hidden":"";}catch(e){}		
-		try{document.getElementById("cartCount").innerHTML=getCartItems().length;}catch(e){}
+		document.getElementById("cartBadge").style.visibility=(getCartItems().length<=0)?"hidden":"";		
+		document.getElementById("cartCount").innerHTML=getCartItems().length;
 	
 	
 
@@ -74,10 +92,10 @@
 					       if (input.length < 3) {
 					          return resolve([])
 					        }
-			        fetch(restserver+'/cards/suggestcard/'+input)
+			        fetch(restserver+'/cards/light/'+encodeURIComponent(input))
 			          .then(response => response.json())
 			          .then(data => {
-							resolve(data)
+							resolve(normalizeCards(data))
 						})
 			      })
 			    },
@@ -89,7 +107,7 @@
 						        ${result.name}
 						      </div>
 						      <div class="result-set">
-										<i class="ss ss-2x ss-${result.keyrune.toLowerCase()}"></i>
+										<i class="ss ss-2x ss-${(result.keyrune||'').toLowerCase()}"></i>
 										 ${result.set} ${result.showcase?" - Showcase":""} ${result.extendedArt?" - Extended":""} ${result.borderless?" - Borderless":""}
 						      </div>
 						    </li>

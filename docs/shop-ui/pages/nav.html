@@ -169,7 +169,7 @@ $("#searchText").keyup(function(e){
 	  minLength: 3,
      source: function( request, response ) { 
        $.ajax({
-         url: restserver+"/cards/light/" + encodeURIComponent(request).term,
+         url: restserver+"/cards/light/" + request.term,
          dataType: "json",
          data: {
            term: request.term
