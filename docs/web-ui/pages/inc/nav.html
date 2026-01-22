@@ -8,6 +8,10 @@
             <li class="breadcrumb-item text-sm text-dark active" aria-current="page"  name="categTitle"></li>
           </ol>
         </nav>
+<script>
+  window.getCartItems = window.getCartItems || function(){ return []; };
+</script>
+
         
         
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
@@ -59,8 +63,8 @@
 		});
 	
 		
-		document.getElementById("cartBadge").style.visibility=(getCartItems().length<=0)?"hidden":"";		
-		document.getElementById("cartCount").innerHTML=getCartItems().length;
+		try{document.getElementById("cartBadge").style.visibility=(getCartItems().length<=0)?"hidden":"";}catch(e){}		
+		try{document.getElementById("cartCount").innerHTML=getCartItems().length;}catch(e){}
 	
 	
 
@@ -70,7 +74,7 @@
 					       if (input.length < 3) {
 					          return resolve([])
 					        }
-			        fetch(restserver+'/cards/light/'+encodeURIComponent(encodeURIComponent)(input))
+			        fetch(restserver+'/cards/suggestcard/'+input)
 			          .then(response => response.json())
 			          .then(data => {
 							resolve(data)

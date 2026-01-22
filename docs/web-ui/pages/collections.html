@@ -7,8 +7,8 @@
   <script src="../../config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../dist/js/supabase-client.js"></script>
-  <script src="../dist/js/supabase-store.js"></script>
   <script src="../dist/js/auth-guard.js"></script>
+  <script src="../dist/js/supabase-store.js"></script>
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -42,9 +42,7 @@
   <script src="//cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>
   <script src="../dist/js/rest-server.js"></script>
   <script src="../dist/js/js-var.js"></script>
-  <script src="../dist/js/mtgcompanion-ui.js"></script>
-
-		<script>
+<script>
 		$(document).ready(function() {
 			
 			$("#sidenav-main" ).load("inc/menu.html" );
@@ -65,8 +63,17 @@
 				})
 			});
 			
-			window.MTGStore.getDefaultCollectionName().then(function(name){ $('#defaultLibraryName').html(name || ''); }).catch(function(e){ console.error(e); });
-$('#tableCollections').DataTable( {
+			$.ajax({
+	  			url: restserver+"/collections/default"
+	   	   		 }).done(function(data) {
+	   	   			 $("#defaultLibraryName").html(data);
+	   	   			 
+	   	   			 
+	   	   		 });
+			
+			
+			
+			$('#tableCollections').DataTable( {
 				"responsive": true,
 				"pageLength": 5,
 				"lengthChange": false,
@@ -76,10 +83,7 @@ $('#tableCollections').DataTable( {
 		    	    "search": "Filter",
 		    	    "processing": "<img src='../dist/img/loading.gif' width='50' height='50'>"
 		    	  },
-		        "ajax": function(data, callback, settings){
-  window.MTGStore.listCollections().then(function(rows){ callback({data: rows}); }).catch(function(e){ console.error(e); callback({data: []}); });
-},
-"dataSrc": "data",
+		        "ajax": {"url":restserver+"/collections/list","dataSrc":""},
 				"columns": [
 		        	{ 
 		                "data": "name",

@@ -1,266 +1,167 @@
-/* Supabase storage layer (Path A)
-   - Supabase Auth handles login
-   - Supabase Postgres stores user collections/decks/cards via RLS
-   - Render backend remains for card search/details/images only
-*/
-(function () {
-  async function requireSession() {
-    if (!window.mtgdcSupabase) throw new Error("Supabase client not initialized (mtgdcSupabase missing).");
-    const { data, error } = await window.mtgdcSupabase.auth.getSession();
+(function(){
+  async function ensureClient(){
+    if (!window.mtgdcSupabase) throw new Error("Supabase client not initialized.");
+    return window.mtgdcSupabase;
+  }
+
+  async function requireSession(){
+    const sb = await ensureClient();
+    const { data, error } = await sb.auth.getSession();
     if (error) throw error;
-    const session = data?.session;
-    if (!session) throw new Error("Not logged in.");
-    return { client: window.mtgdcSupabase, user: session.user };
+    if (!data || !data.session) throw new Error("Not logged in.");
+    return { sb, session: data.session, userId: data.session.user.id };
   }
 
-  async function listCollections() {
-    const { client, user } = await requireSession();
-    const { data, error } = await client
-      .from("collections")
-      .select("id,name,description,created_at,updated_at")
-      .eq("user_id", user.id)
-      .order("name", { ascending: true });
-    if (error) throw error;
+  const MTGStore = {
+    requireSession,
 
-    // Add optional fields expected by some tables (safe defaults)
-    return (data || []).map(r => ({
-      id: r.id,
-      name: r.name,
-      description: r.description || "",
-      pc: 0,
-      qty: 0,
-      cardNumber: 0,
-      set: "",
-      release: ""
-    }));
-  }
+    async listCollections(){
+      const { sb, userId } = await requireSession();
+      const { data, error } = await sb
+        .from("collections")
+        .select("id,name,description,created_at,updated_at")
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
 
-  async function getOrCreateCollectionByName(name) {
-    const { client, user } = await requireSession();
-    const trimmed = (name || "").trim();
-    if (!trimmed) throw new Error("Collection name is required.");
+    async createCollection(name, description){
+      const { sb, userId } = await requireSession();
+      const n = String(name || "").trim();
+      if (!n) throw new Error("Collection name required.");
+      const { data, error } = await sb
+        .from("collections")
+        .insert({ user_id: userId, name: n, description: description || null })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return data.id;
+    },
 
-    const existing = await client
-      .from("collections")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("name", trimmed)
-      .maybeSingle();
+    async getOrCreateCollectionIdByName(name){
+      const { sb, userId } = await requireSession();
+      const n = String(name || "").trim();
+      if (!n) throw new Error("Collection name required.");
 
-    if (existing.error) throw existing.error;
-    if (existing.data?.id) return existing.data.id;
+      const existing = await sb
+        .from("collections")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("name", n)
+        .maybeSingle();
 
-    const ins = await client
-      .from("collections")
-      .insert({ user_id: user.id, name: trimmed })
-      .select("id")
-      .single();
+      if (existing.error) throw existing.error;
+      if (existing.data?.id) return existing.data.id;
 
-    if (ins.error) throw ins.error;
-    return ins.data.id;
-  }
+      return await MTGStore.createCollection(n);
+    },
 
-  async function getDefaultCollectionName() {
-    const { client, user } = await requireSession();
-    const settings = await client
-      .from("user_settings")
-      .select("default_collection_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (settings.error) throw settings.error;
+    async getDefaultCollectionName(){
+      const { sb, userId } = await requireSession();
+      const s = await sb
+        .from("user_settings")
+        .select("default_collection_id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    const defId = settings.data?.default_collection_id;
-    if (!defId) return "";
+      if (s.error) throw s.error;
 
-    const col = await client
-      .from("collections")
-      .select("name")
-      .eq("id", defId)
-      .maybeSingle();
+      const defaultId = s.data?.default_collection_id;
+      if (!defaultId) return "Stock";
 
-    if (col.error) throw col.error;
-    return col.data?.name || "";
-  }
+      const c = await sb
+        .from("collections")
+        .select("name")
+        .eq("id", defaultId)
+        .maybeSingle();
 
-  async function setDefaultCollectionByName(name) {
-    const { client, user } = await requireSession();
-    const id = await getOrCreateCollectionByName(name);
+      if (c.error) throw c.error;
+      return c.data?.name || "Stock";
+    },
 
-    const up = await client
-      .from("user_settings")
-      .upsert({ user_id: user.id, default_collection_id: id }, { onConflict: "user_id" });
+    async addCardToCollectionByName(collectionName, scryfallId, cardName, qty){
+      const { sb, userId } = await requireSession();
+      const collectionId = await MTGStore.getOrCreateCollectionIdByName(collectionName);
+      const amount = Math.max(1, parseInt(qty || 1, 10) || 1);
 
-    if (up.error) throw up.error;
-    return true;
-  }
-
-  // Stock: we treat it as a special collection name
-  const STOCK_COLLECTION_NAME = "Stock";
-
-  async function addToStock(scryfallId, cardName) {
-    return addCardToCollectionByName(STOCK_COLLECTION_NAME, scryfallId, cardName);
-  }
-
-  async function listStocks() {
-    const { client, user } = await requireSession();
-    const stockId = await getOrCreateCollectionByName(STOCK_COLLECTION_NAME);
-
-    const { data, error } = await client
-      .from("collection_cards")
-      .select("id, scryfall_id, card_name, qty, is_foil, condition, language, created_at")
-      .eq("user_id", user.id)
-      .eq("collection_id", stockId)
-      .order("updated_at", { ascending: false });
-
-    if (error) throw error;
-
-    // Shape for existing DataTables columns in stocks.html
-    return (data || []).map(r => ({
-      id: r.id,
-      qte: r.qty,
-      price: 0,
-      condition: r.condition || "",
-      language: r.language || "",
-      foil: !!r.is_foil,
-      signed: false,
-      altered: false,
-      magicCollection: { name: STOCK_COLLECTION_NAME },
-      product: {
-        name: r.card_name || r.scryfall_id,
-        edition: ""
-      }
-    }));
-  }
-
-  async function addCardToCollectionByName(collectionName, scryfallId, cardName) {
-    const { client, user } = await requireSession();
-    const collectionId = await getOrCreateCollectionByName(collectionName);
-
-    const existing = await client
-      .from("collection_cards")
-      .select("id, qty")
-      .eq("collection_id", collectionId)
-      .eq("scryfall_id", scryfallId)
-      .eq("is_foil", false)
-      .maybeSingle();
-
-    if (existing.error) throw existing.error;
-
-    if (!existing.data) {
-      const ins = await client
+      const ex = await sb
         .from("collection_cards")
-        .insert({
-          user_id: user.id,
+        .select("id,qty")
+        .eq("collection_id", collectionId)
+        .eq("scryfall_id", scryfallId)
+        .eq("is_foil", false)
+        .maybeSingle();
+
+      if (ex.error) throw ex.error;
+
+      if (!ex.data){
+        const ins = await sb.from("collection_cards").insert({
+          user_id: userId,
           collection_id: collectionId,
           scryfall_id: scryfallId,
           card_name: cardName || null,
-          qty: 1
+          qty: amount,
+          is_foil: false
         });
+        if (ins.error) throw ins.error;
+        return;
+      }
 
-      if (ins.error) throw ins.error;
-      return true;
-    }
-
-    const upd = await client
-      .from("collection_cards")
-      .update({ qty: existing.data.qty + 1, card_name: cardName || null })
-      .eq("id", existing.data.id);
-
-    if (upd.error) throw upd.error;
-    return true;
-  }
-
-  async function moveCardBetweenCollections(fromName, toName, scryfallId) {
-    const { client, user } = await requireSession();
-    const fromId = await getOrCreateCollectionByName(fromName);
-    const toId = await getOrCreateCollectionByName(toName);
-
-    // read from row
-    const fromRow = await client
-      .from("collection_cards")
-      .select("id, qty, card_name, is_foil, condition, language")
-      .eq("collection_id", fromId)
-      .eq("scryfall_id", scryfallId)
-      .maybeSingle();
-
-    if (fromRow.error) throw fromRow.error;
-    if (!fromRow.data) return true; // nothing to move
-
-    const cardName = fromRow.data.card_name || null;
-
-    // decrement/remove from
-    if (fromRow.data.qty <= 1) {
-      const del = await client.from("collection_cards").delete().eq("id", fromRow.data.id);
-      if (del.error) throw del.error;
-    } else {
-      const upd = await client
+      const upd = await sb
         .from("collection_cards")
-        .update({ qty: fromRow.data.qty - 1 })
-        .eq("id", fromRow.data.id);
+        .update({ qty: ex.data.qty + amount, card_name: cardName || null })
+        .eq("id", ex.data.id);
+
       if (upd.error) throw upd.error;
-    }
+    },
 
-    // increment/add to
-    const toRow = await client
-      .from("collection_cards")
-      .select("id, qty")
-      .eq("collection_id", toId)
-      .eq("scryfall_id", scryfallId)
-      .maybeSingle();
+    async moveCardBetweenCollections(fromName, toName, scryfallId, qty){
+      const { sb, userId } = await requireSession();
+      const fromId = await MTGStore.getOrCreateCollectionIdByName(fromName);
+      const toId = await MTGStore.getOrCreateCollectionIdByName(toName);
+      const amount = Math.max(1, parseInt(qty || 1, 10) || 1);
 
-    if (toRow.error) throw toRow.error;
-
-    if (!toRow.data) {
-      const ins = await client
+      const src = await sb
         .from("collection_cards")
-        .insert({
-          user_id: user.id,
-          collection_id: toId,
-          scryfall_id: scryfallId,
-          card_name: cardName,
-          qty: 1
-        });
-      if (ins.error) throw ins.error;
-    } else {
-      const upd = await client
-        .from("collection_cards")
-        .update({ qty: toRow.data.qty + 1, card_name: cardName })
-        .eq("id", toRow.data.id);
-      if (upd.error) throw upd.error;
+        .select("id,qty,card_name")
+        .eq("collection_id", fromId)
+        .eq("scryfall_id", scryfallId)
+        .eq("is_foil", false)
+        .maybeSingle();
+
+      if (src.error) throw src.error;
+      if (!src.data) throw new Error("Card not found in source collection.");
+
+      if (src.data.qty <= amount){
+        const del = await sb.from("collection_cards").delete().eq("id", src.data.id);
+        if (del.error) throw del.error;
+      } else {
+        const upd = await sb.from("collection_cards").update({ qty: src.data.qty - amount }).eq("id", src.data.id);
+        if (upd.error) throw upd.error;
+      }
+
+      await MTGStore.addCardToCollectionByName(toName, scryfallId, src.data.card_name, amount);
     }
+  };
 
-    return true;
-  }
+  window.MTGStore = MTGStore;
 
-  async function listDecks() {
-    const { client, user } = await requireSession();
-    const { data, error } = await client
-      .from("decks")
-      .select("id,name,commander,colors,created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-
-    return (data || []).map(d => ({
-      id: d.id,
-      name: d.name,
-      commander: d.commander || "",
-      colors: Array.isArray(d.colors) ? d.colors.join("") : (d.colors || ""),
-      tags: "",
-      creationDate: d.created_at
-    }));
-  }
-
-  window.MTGStore = {
-    listCollections,
-    getOrCreateCollectionByName,
-    getDefaultCollectionName,
-    setDefaultCollectionByName,
-    addCardToCollectionByName,
-    moveCardBetweenCollections,
-    listStocks,
-    addToStock,
-    listDecks,
-    STOCK_COLLECTION_NAME
+  // Legacy web-ui bridge expected by older pages/buttons
+  window.addCollection = async function(name, callback){
+    try { await MTGStore.createCollection(name); if (typeof callback==='function') callback(); }
+    catch(e){ alert(e?.message || String(e)); }
+  };
+  window.addStock = async function(idScryfall, callback){
+    try { await MTGStore.addCardToCollectionByName("Stock", idScryfall, null, 1); if (typeof callback==='function') callback(); }
+    catch(e){ alert(e?.message || String(e)); }
+  };
+  window.addCard = async function(idScryfall, to, callback){
+    try { await MTGStore.addCardToCollectionByName(to, idScryfall, null, 1); if (typeof callback==='function') callback(); }
+    catch(e){ alert(e?.message || String(e)); }
+  };
+  window.moveCard = async function(idScryfall, from, to, callback){
+    try { await MTGStore.moveCardBetweenCollections(from, to, idScryfall, 1); if (typeof callback==='function') callback(); }
+    catch(e){ alert(e?.message || String(e)); }
   };
 })();

@@ -30,12 +30,14 @@
   async function ensureSupabase(){
     if (!cfg().SUPABASE_URL || !cfg().SUPABASE_ANON_KEY) return null;
     if (!window.supabase || !window.supabase.createClient) return null;
+    if (window.mtgdcSupabase) { window.__mtgdcSupabase = window.mtgdcSupabase; return window.mtgdcSupabase; }
     if (!window.__mtgdcSupabase){
       window.__mtgdcSupabase = window.supabase.createClient(cfg().SUPABASE_URL, cfg().SUPABASE_ANON_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
     }
-    return window.__mtgdcSupabase;
+    window.mtgdcSupabase = window.__mtgdcSupabase;
+      return window.__mtgdcSupabase;
   }
 
   async function boot(){
